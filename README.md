@@ -1,1 +1,35 @@
-# plan
+# Ribs Down
+
+A phone-first home workout app built from the **Home Workout Plan** (Nov 1, 2026): the daily 10-minute Back & Pelvis Block for anterior pelvic tilt, Day A (push + legs), Day B (pull + hinge), the Sunday walk, plus running days, a pace clock, exercise swaps and automatic progression.
+
+Everything lives in one page (`app.html`). No build tools, no accounts, no external services.
+
+## What it does
+
+- **Today**: the session for today (Block, then Day A or B in the plan's alternating order, runs on your chosen days, walk on Sunday), one tap to start, quick actions for a low-energy "Block only" day, logging a run done elsewhere, or a gym day.
+- **Pace clock**: a sweeping-hand clock paces every hold, every rest and every rep (auto-counted at the exercise's tempo, with ticks and beeps). Supersets, rests and left/right sides are sequenced for you. Swap an exercise mid-workout.
+- **Visuals**: an animated figure for every exercise showing the start and end position.
+- **Progression**: rate each session 1-10. Hit the top of the rep range and rate it 7 or lower and the app moves you up the plan's ladder (harder variation, more backpack weight, slower lowering). Finishing well under the plan's target time counts as easier; well over counts as harder. Runs grow from 1 mile toward 4 for the long run based on your ratings.
+- **Switch it up**: every slot has alternatives that train the same goal (horizontal push, hinge, hamstring curl, and so on). Mix up a day with one tap, or let the app nudge you every 4 weeks.
+- **Motivation**: streaks, XP levels, 21 badges, a daily line from the plan, confetti.
+- **Progress**: 12-week heatmap, difficulty trend with the 6-8 target band, minutes per week, per-exercise bests, run pace and miles, bodyweight, full history.
+- **Reminders**: a daily reminder while the page is open (with browser notifications where allowed), plus Google Calendar / `.ics` links for a repeating event with an alert. Posture-break nudges every 30-60 minutes, as the plan asks.
+- **Recovery**: protein target from your bodyweight, sleep and walking notes, form rules for anterior pelvic tilt, daily habit check-offs.
+
+## Run it
+
+- **Hosted**: open the published Claude artifact (data syncs through your Claude account across devices).
+- **Self-hosted**: serve this folder (GitHub Pages works: Settings → Pages → deploy from `main`, root). Open `index.html`, then "Add to Home Screen" for a full-screen, offline-capable app. Data stays in that browser; use Export/Import under More to move it.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `app.html` | The whole app (styles, markup, script). This is what gets published as the artifact. |
+| `head.html`, `tail.html`, `build.sh` | Wrap `app.html` into a standalone `index.html` with the PWA manifest. Run `./build.sh` after editing `app.html`. |
+| `index.html` | Built output for self-hosting. |
+| `manifest.webmanifest`, `sw.js`, `icon*.{svg,png}` | Installable-app metadata, offline cache, icons. |
+
+## Editing the program
+
+Exercises, slots, goals, badges and the plan's text live at the top of the script in `app.html` (`EX`, `SLOTS`, `GOALS`, `BADGES`, `QUOTES`). Each exercise has a `how`, a `cue`, a rep or hold range, a tempo, and optional `easier`/`harder` links that form its progression ladder.
