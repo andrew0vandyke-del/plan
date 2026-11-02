@@ -7,11 +7,13 @@
 <meta name="theme-color" content="#0E1218" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ribs Down">
+<meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>html{background:#F2F4F8}@media (prefers-color-scheme:dark){html{background:#0E1218}}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
 <title>Ribs Down</title>
@@ -48,7 +50,12 @@
 
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+button,.btn,.switch,.habit,.tabs button,.rpe button,.days button,.alt,.slot,.hist{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#player,#sheet .panel{-webkit-overflow-scrolling:touch}
+.install{border:1px solid var(--accent)}
+.install ol{padding-left:1.2rem;margin:0;font-size:.9rem}
+.install li{margin:.2rem 0}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 h1,h2,h3,h4{font-family:var(--display);font-weight:600;line-height:1.1;margin:0;text-wrap:balance;letter-spacing:.01em}
 h1{font-size:2rem} h2{font-size:1.5rem} h3{font-size:1.2rem} h4{font-size:1.05rem}
@@ -498,6 +505,9 @@ const BADGES = [
    2. FIGURES — animated stick-figure poses (side view, floor at y=72)
    ========================================================= */
 const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+const STANDALONE = navigator.standalone===true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use==='function');
 const STAND = {head:[50,9],neck:[50,16],sh:[50,18],el:[51,30],hd:[52,41],hip:[50,38],kn:[50,54],ft:[50,72]};
 function pose(base, over){ return Object.assign({}, base, over); }
 function unit(a,b){ const dx=a[0]-b[0], dy=a[1]-b[1], l=Math.hypot(dx,dy)||1; return [dx/l,dy/l]; }
@@ -821,6 +831,7 @@ function viewToday(){
   </section>
   ${d?`<section class="card" style="border:1px solid var(--hand)"><div class="card-head"><h3>Workout in progress</h3><span class="chip hand">Step ${d.i+1} of ${d.steps.length}</span></div><p class="small muted">You left ${esc(d.title)} part way through.</p><div class="row"><button class="btn hand" data-act="resume">${ICON.play} Resume</button><button class="btn" data-act="discard">Discard</button></div></section>`:''}
   ${rot}
+  ${installCard()}
   <section class="card">
     <div class="card-head"><h2>Today's session</h2><span class="tiny faint">${plan.length} part${plan.length>1?'s':''} · ~${plan.reduce((a,s)=>a+(s.kind==='block'?10:s.kind==='A'||s.kind==='B'?17:s.kind==='run'?Math.round(s.miles*11):s.kind==='walk'?25:0),0)} min</span></div>
     <div>${plan.map(segRow).join('')}</div>
@@ -841,6 +852,7 @@ function viewToday(){
   </section>`;
 }
 
+function installCard(){ let hidden=false; try{ hidden=localStorage.getItem('ribsdown.install')==='1'; }catch(e){} if(!IOS||STANDALONE||IN_CLAUDE||hidden) return ''; return `<section class="card install"><div class="card-head"><h3>Put it on your Home Screen</h3><button class="btn sm" data-act="hideinstall" aria-label="Dismiss">${ICON.x}</button></div><p class="small muted">Installed, it opens full screen, works offline, keeps the screen awake during workouts and can send reminders.</p><ol><li>Tap the <b>Share</b> button at the bottom of Safari.</li><li>Scroll and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>, then open Ribs Down from your Home Screen.</li></ol></section>`; }
 /* ---- Plan ---- */
 function viewPlan(){
   const k=todayKey(), ws=weekStart(k), p=state.profile, wk=programWeek();
@@ -1002,7 +1014,7 @@ function viewMore(){
     <div class="card-head"><h2>Reminders</h2>${sw('profile.reminder.on',r.on)}</div>
     <div class="field-row"><div class="lab"><b>Time</b><span>Fires while this page is open</span></div><input type="time" id="rem-time" value="${esc(r.time)}" data-set="profile.reminder.time"></div>
     <div class="field-row"><div class="lab"><b>Days</b></div></div>${dayPick('profile.reminder.days',r.days)}
-    <div class="field-row"><div class="lab"><b>Phone notifications</b><span>${notif==='granted'?'Allowed on this device':notif==='denied'?'Blocked in browser settings':notif==='unsupported'?'Not available in this browser':'Needs your permission'}</span></div>${notif==='default'?`<button class="btn sm" data-act="askNotify">Allow</button>`:''}</div>
+    <div class="field-row"><div class="lab"><b>Phone notifications</b><span>${notif==='granted'?'Allowed on this device':notif==='denied'?'Blocked in browser settings':notif==='unsupported'?(IOS&&!STANDALONE?'On iPhone, add the app to your Home Screen first, then allow here':'Not available in this browser'):'Needs your permission'}</span></div>${notif==='default'?`<button class="btn sm" data-act="askNotify">Allow</button>`:''}</div>
     <div class="field-row"><div class="lab"><b>Put it on your calendar</b><span>Most reliable: a repeating event with an alert, even when the app is closed.</span></div></div>
     <div class="row"><a class="btn sm" href="${gcalLink()}" target="_blank" rel="noopener">Google Calendar</a><button class="btn sm" data-act="ics">Apple / Outlook (.ics)</button></div>
   </section>
@@ -1039,7 +1051,17 @@ function viewMore(){
     <div class="field-row"><div class="lab"><b>Mix up exercises every</b></div><div class="row"><input type="number" min="2" max="12" step="1" value="${p.rotateWeeks}" data-set="profile.rotateWeeks" aria-label="Weeks between mixing up exercises"><span class="small muted">weeks</span></div></div>
     <div class="field-row"><div class="lab"><b>Sounds</b><span>Countdown beeps</span></div>${sw('profile.sound',p.sound)}</div>
     <div class="field-row"><div class="lab"><b>Rep ticks</b><span>A soft tick at each rep's tempo</span></div>${sw('profile.ticks',p.ticks)}</div>
-    <div class="field-row"><div class="lab"><b>Vibration</b></div>${sw('profile.vibrate',p.vibrate)}</div>
+    <div class="field-row"><div class="lab"><b>Vibration</b>${IOS?'<span>iPhone does not allow web apps to vibrate; sounds still work</span>':''}</div>${sw('profile.vibrate',p.vibrate)}</div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h3>iPhone and Apple Watch</h3></div>
+    <ul class="small rules">
+      <li><b>Install it</b>: in Safari, Share → Add to Home Screen. Installed, it runs full screen, works offline and can send reminders.</li>
+      <li><b>Reminders on the Watch</b>: a calendar event with an alert buzzes the Watch even when the phone is in a bag. Use the calendar buttons above; the .ics opens in Apple Calendar.</li>
+      <li><b>Runs</b>: start a run in the Watch's Workout app so it records to Apple Health, then log the miles and time here under Log something else.</li>
+      <li><b>Watch companion app</b>: the repo has a native watchOS app (folder <code>watch/</code>) that paces the Block and strength days on your wrist with haptic taps. It needs a one-time build in Xcode.</li>
+      <li><b>Screen</b>: the app keeps the screen awake during a workout. If the screen does lock, the session pauses and waits for you.</li>
+    </ul>
   </section>
   <section class="card">
     <div class="card-head"><h3>Your data</h3><span class="tiny faint">${Store.db?'Synced to your Claude account':'Stored in this browser'}</span></div>
@@ -1070,7 +1092,7 @@ let S=null, tickTimer=null, wakeLock=null, AC=null;
 function beep(freq=880,ms=120,vol=.18){ if(!state.profile.sound) return; try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=freq; g.gain.value=vol; o.connect(g); g.connect(AC.destination); const t=AC.currentTime; o.start(t); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000); o.stop(t+ms/1000+0.02); }catch(e){} }
 function buzz(p){ if(state.profile.vibrate&&navigator.vibrate){ try{ navigator.vibrate(p); }catch(e){} } }
 async function keepAwake(on){ try{ if(on&&navigator.wakeLock&&!wakeLock){ wakeLock=await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{wakeLock=null;}); } else if(!on&&wakeLock){ await wakeLock.release(); wakeLock=null; } }catch(e){ wakeLock=null; } }
-document.addEventListener('visibilitychange',()=>{ if(S&&document.visibilityState==='visible') keepAwake(true); });
+document.addEventListener('visibilitychange',()=>{ if(!S||document.visibilityState!=='visible') return; keepAwake(true); const st=step(); if(S.pausedAt||!st) return; const dur=st.kind==='rest'||st.kind==='switch'?st.sec:(st.kind==='ex'&&st.mode==='time')?st.target:null; if(dur!=null&&stepElapsed()>dur+4){ S.pausedAt=Date.now()-(stepElapsed()-dur)*1000; S.lastBeep=null; buildStep(); toast('Paused while the screen was off. Tap Resume to carry on.',4000); } });
 
 function exStep(s,e,set,side){ const l=level(s.id); return {kind:'ex', slot:s.id, ex:e.id, set, sets:s.sets, side, mode:e.mode, target:e.mode==='time'?l.hold:l.target, range:e.range||e.hold, tempo:e.tempo||3, load:l.load||0, section:s.section, label:s.label}; }
 function buildSteps(kinds, opts={}){
@@ -1095,6 +1117,7 @@ function startSession(kinds, opts={}){
   if(kinds.some(k=>k==='A'||k==='B') && !('extras' in opts)) { askExtras(kinds); return; }
   S={kinds, title:sessionTitle(kinds), steps:buildSteps(kinds,opts), i:0, log:{}, startedAt:Date.now(), stepStart:Date.now(), pausedAt:null, splits:[], runSec:null, floorSec:null, manual:null, lastBeep:null, lastTick:-1, ratings:{}, result:null};
   beep(660,60); openPlayer();
+  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(e){}
 }
 function askExtras(kinds){ openSheet(`<div class="sheet-head"><div><h2>Got 5 extra minutes?</h2></div><button class="btn sm" data-act="closesheet" aria-label="Close">${ICON.x}</button></div><p class="small muted">${kinds.includes('A')?'Day A adds diamond push-ups or single-leg calf raises':'Day B adds backpack curls'}, two sets near failure, at the end.</p><div class="grid2"><button class="btn primary" data-act="startx" data-kinds="${kinds.join(',')}" data-extras="1">Yes, add them</button><button class="btn" data-act="startx" data-kinds="${kinds.join(',')}" data-extras="0">Not today</button></div>`); }
 function saveDraft(){ if(!S) return; try{ localStorage.setItem(SKEY, JSON.stringify({kinds:S.kinds,title:S.title,steps:S.steps,i:S.i,log:S.log,elapsed:elapsed(),splits:S.splits,runSec:S.runSec,floorSec:S.floorSec})); }catch(e){} }
@@ -1257,13 +1280,14 @@ const ACT={
   useex:d=>{ setSlotEx(d.slot,d.ex,true); Store.saveState(); closeSheet(); render(); toast(`${EX[d.ex].name} is now ${SLOT[d.slot].label}`); },
   histsheet:d=>histSheet(d.id),
   delworkout:(d,el)=>{ if(el.dataset.sure!=='1'){ el.dataset.sure='1'; el.textContent='Tap again to delete'; return; } const w=workouts.find(x=>x.id===d.id); workouts=workouts.filter(x=>x.id!==d.id); if(w) state.xp=Math.max(0,(state.xp||0)-(w.xp||0)); Store.saveState(); Store.deleteWorkout(d.id); closeSheet(); render(); toast('Deleted'); },
+  hideinstall:()=>{ try{ localStorage.setItem('ribsdown.install','1'); }catch(e){} render(); },
   habit:d=>{ const k=todayKey(); const h=state.habits[k]=state.habits[k]||{}; h[d.id]=!h[d.id]; Store.saveState(); render(); },
   logmanual:()=>manualSheet(), loggym:()=>{ manualSheet(); $('#m-type').value='gym'; $('#m-time').value='60:00'; },
   mrpe:(d,el)=>{ mRpe=+d.v; document.querySelectorAll('#m-rpe button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===d.v)); },
   savemanual:()=>saveManual(),
   toggle:d=>{ setPath(d.path,!getPath(d.path)); Store.saveState(); render(); if(d.path==='profile.reminder.on'&&getPath(d.path)) toast('Reminder on. Allow notifications or add it to your calendar.'); },
   dayset:d=>{ const arr=getPath(d.path).slice(); const n=+d.day; const i=arr.indexOf(n); if(i>=0) arr.splice(i,1); else arr.push(n); setPath(d.path,arr); Store.saveState(); render(); },
-  askNotify:async()=>{ try{ const r=await Notification.requestPermission(); toast(r==='granted'?'Notifications allowed':'Notifications not allowed here. Use the calendar option.'); }catch(e){ toast('Notifications are not available in this view. Use the calendar option.'); } render(); },
+  askNotify:async()=>{ if(typeof Notification==='undefined'){ toast(IOS?'Add the app to your Home Screen first, then allow notifications here.':'Notifications are not available in this browser.'); return; } try{ const r=await Notification.requestPermission(); toast(r==='granted'?'Notifications allowed':'Notifications not allowed here. Use the calendar option.'); }catch(e){ toast('Notifications are not available in this view. Use the calendar option.'); } render(); },
   ics:async()=>{ const txt=icsText(); const ok=await saveFile('ribs-down-reminder.ics',txt,'text/calendar'); if(!ok){ try{ await navigator.clipboard.writeText(txt); toast('Calendar file copied. Paste it into a file named ribs-down.ics and open it.'); }catch(e){ openSheet(`<div class="sheet-head"><div><h2>Calendar event</h2></div><button class="btn sm" data-act="closesheet">${ICON.x}</button></div><p class="small muted">Copy this into a file named ribs-down.ics and open it on your phone or computer.</p><textarea readonly style="min-height:14rem;font-family:monospace;font-size:.75rem">${esc(txt)}</textarea>`); } } },
   export:async()=>{ const ok=await saveFile('ribs-down-backup.json',JSON.stringify({exported:new Date().toISOString(),state,workouts},null,1),'application/json'); if(ok) toast('Backup saved'); },
   resetask:(d,el)=>{ if(el.dataset.sure!=='1'){ el.dataset.sure='1'; el.textContent='Tap again to erase everything'; return; } state=clone(DEFAULT); const ids=workouts.map(w=>w.id); workouts=[]; Store.saveState(); ids.forEach(id=>Store.deleteWorkout(id)); clearDraft(); render(); toast('Everything erased'); },
@@ -1297,7 +1321,11 @@ window.addEventListener('hashchange',()=>{ const h=location.hash.slice(1); if(['
   document.addEventListener('pointermove',e=>{ const el=e.target.closest('[data-tip]'); if(el) show(el,e.clientX,e.clientY); });
   document.addEventListener('pointerleave',()=>{ if(tip) tip.remove(); },true); })();
 // reminders & posture breaks (while the page is open)
-function notify(title, body){ toast(`${title}: ${body}`,5000); beep(880,120); setTimeout(()=>beep(1100,160),200); buzz([120,80,120]); try{ if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&document.visibilityState!=='visible') new Notification(title,{body,tag:'ribsdown'}); }catch(e){} }
+function notify(title, body){ toast(`${title}: ${body}`,5000); beep(880,120); setTimeout(()=>beep(1100,160),200); buzz([120,80,120]);
+  if(typeof Notification==='undefined'||Notification.permission!=='granted'||document.visibilityState==='visible') return;
+  const opts={body,tag:'ribsdown',icon:'icon-192.png'};
+  if(navigator.serviceWorker&&navigator.serviceWorker.ready){ navigator.serviceWorker.ready.then(r=>r.showNotification(title,opts)).catch(()=>{ try{ new Notification(title,opts); }catch(e){} }); }
+  else { try{ new Notification(title,opts); }catch(e){} } }
 let lastPosture=Date.now();
 setInterval(()=>{ const p=state.profile; const n=new Date(); const k=todayKey(n);
   if(p.reminder.on){ const hm=`${pad2(n.getHours())}:${pad2(n.getMinutes())}`; let fired=''; try{ fired=localStorage.getItem(RKEY)||''; }catch(e){}

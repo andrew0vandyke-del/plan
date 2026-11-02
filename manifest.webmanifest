@@ -3,6 +3,7 @@
   "short_name": "Ribs Down",
   "description": "Home workout plan: daily Back & Pelvis Block, Day A push + legs, Day B pull + hinge, runs, pace clock and progress tracking.",
   "start_url": "./index.html#today",
+  "id": "ribs-down",
   "scope": "./",
   "display": "standalone",
   "background_color": "#F2F4F8",
