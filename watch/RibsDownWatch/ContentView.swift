@@ -8,10 +8,14 @@ struct ContentView: View {
             List {
                 Section("Floor work") {
                     sessionRow("Block only", "10 min, the part that matters most", [.block])
-                    sessionRow("Block + Day A", "Push + legs, about 27 min", [.block, .dayA])
-                    sessionRow("Block + Day B", "Pull + hinge, about 27 min", [.block, .dayB])
+                    sessionRow("Block + Day A + Core", "Push + legs, about 32 min", [.block, .dayA, .core5])
+                    sessionRow("Block + Day B + Core", "Pull + hinge, about 32 min", [.block, .dayB, .core5])
                     sessionRow("Day A only", "If the Block is already done", [.dayA])
                     sessionRow("Day B only", "If the Block is already done", [.dayB])
+                }
+                Section("Core finisher") {
+                    sessionRow("Core, 5 min", "3 moves, 2 rounds, 40s on / 15s off", [.core5])
+                    sessionRow("Core, 10 min", "4 moves, 2 rounds, 50s on / 15s off", [.core10])
                 }
                 Section("Cardio") {
                     NavigationLink {
@@ -24,7 +28,7 @@ struct ContentView: View {
                     }
                 }
                 Section {
-                    Text("Ribs down, glutes on. Ratings and progression are logged in the phone app.")
+                    Text("Ribs down, glutes on. Log sets here; rate and save the session in the phone app.")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
             }
