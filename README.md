@@ -16,6 +16,11 @@ Everything lives in one page (`app.html`). No build tools, no accounts, no exter
 - **Reminders**: a daily reminder while the page is open (with browser notifications where allowed), plus Google Calendar / `.ics` links for a repeating event with an alert. Posture-break nudges every 30-60 minutes, as the plan asks.
 - **Recovery**: protein target from your bodyweight, sleep and walking notes, form rules for anterior pelvic tilt, daily habit check-offs.
 
+## iPhone and Apple Watch
+
+- **iPhone**: open the hosted link in Safari, then Share → **Add to Home Screen**. Installed, it runs full screen under the status bar, works offline, keeps the screen awake during a workout, and can send reminders once you tap Allow under More → Reminders. Icons are full-bleed so iOS rounds them properly.
+- **Apple Watch**: a web page cannot run on the Watch. Two things work today: calendar reminders buzz the wrist, and runs recorded in the Watch Workout app can be logged in the app afterwards. For pacing on the wrist, the `watch/` folder holds a native SwiftUI companion app (Block and Day A/B pace clock with haptics, run stopwatch) that needs a one-time build in Xcode. See `watch/README.md`.
+
 ## Run it
 
 - **Hosted**: open the published Claude artifact (data syncs through your Claude account across devices).
